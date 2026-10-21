@@ -120,13 +120,13 @@ def save_to_xlsx(datas, file_path):
     wb.save(file_path)
     logger.info(f'数据保存至 {file_path}')
 
-def download_media(path, name, url, type):
+def download_media(path, name, url, type, **kwargs):
     if type == 'image':
-        content = requests.get(url).content
+        content = requests.get(url, **kwargs).content
         with open(path + '/' + name + '.jpg', mode="wb") as f:
             f.write(content)
     elif type == 'video':
-        res = requests.get(url, stream=True)
+        res = requests.get(url, stream=True, **kwargs)
         size = 0
         chunk_size = 1024 * 1024
         with open(path + '/' + name + '.mp4', mode="wb") as f:
@@ -149,7 +149,11 @@ def save_wrok_detail(work, path):
         f.write(f"收藏数量: {work['collect_count']}\n")
         f.write(f"分享数量: {work['share_count']}\n")
         f.write(f"视频地址url: {work['video_addr']}\n")
-        f.write(f"图片地址url列表: {', '.join(work['images'])}\n")
+        n_images = [];
+        if(len(work['images']) > 0):
+            for image in work['images']:
+                n_images.append(image['download_url_list'][0])
+        f.write(f"图片地址url列表: {', '.join(n_images)}\n")                
         f.write(f"标签: {', '.join(work['topics'])}\n")
         f.write(f"上传时间: {timestamp_to_str(work['create_time'])}\n")
         f.write(f"视频封面url: {work['video_cover']}\n")
@@ -183,15 +187,16 @@ def download_work(work_info, path, save_choice):
         f.write(json.dumps(work_info) + '\n')
     work_type = work_info['work_type']
     save_wrok_detail(work_info, save_path)
+    from utils.data_util_local import download_homepage
+    download_homepage(work_info, save_path)
     if work_type == '图集' and save_choice in ['media', 'media-image', 'all']:
-        for img_index, img_url in enumerate(work_info['images']):
-            download_media(save_path, f'image_{img_index}', img_url, 'image')
+        for i in range(len(work_info['images'])):
+            download_media(save_path, f'image_{i}', work_info['images'][i]['download_url_list'][0], 'image')
     elif work_type == '视频' and save_choice in ['media', 'media-video', 'all']:
         download_media(save_path, 'cover', work_info['video_cover'], 'image')
-        download_media(save_path, 'video', work_info['video_addr'], 'video')
+        download_media(save_path, 'video', work_info['video_addr'], 'video', headers={"accept":"*/*","accept-encoding":"gzip, deflate, br, zstd","accept-language":"zh-CN,zh;q=0.9","cache-control":"no-cache","connection":"keep-alive","host":"v26-webf.douyinvod.com","origin":"https://www.douyin.com","pragma":"no-cache","referer":"https://www.douyin.com/","sec-ch-ua":"""Google Chrome";v="153", "Not_A Brand";v="8", "Chromium";v="153""","sec-ch-ua-mobile":"?0","sec-ch-ua-platform":"""macOS""","sec-fetch-dest":"empty","sec-fetch-mode":"cors","sec-fetch-site":"none","sec-fetch-storage-access":"active","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"})
     logger.info(f'作品 {work_info["work_id"]} 下载完成，保存路径: {save_path}')
     return save_path
-
 
 
 def check_and_create_path(path):
