@@ -139,15 +139,19 @@ class DouyinAPI:
         """
         max_cursor = "0"
         work_list = []
-        while True:
-            res_json = DouyinAPI.get_user_work_info(auth, user_url, max_cursor)
-            if "aweme_list" not in res_json.keys():
-                break
-            works = res_json["aweme_list"]
-            max_cursor = str(res_json["max_cursor"])
-            work_list.extend(works)
-            if res_json["has_more"] != 1:
-                break
+        try:
+            while True:
+                res_json = DouyinAPI.get_user_work_info(auth, user_url, max_cursor)
+                if "aweme_list" not in res_json.keys():
+                    break
+                works = res_json["aweme_list"]
+                max_cursor = str(res_json["max_cursor"])
+                work_list.extend(works)
+                if res_json["has_more"] != 1:
+                    break
+        except Exception as e:
+            print(f"获取用户全部作品({user_url})信息发生异常:", str(e)) 
+
         return work_list
 
 
