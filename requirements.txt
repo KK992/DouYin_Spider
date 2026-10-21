@@ -23,5 +23,5 @@ curl_cffi
 # 注意 blackboxprotobuf 声明依赖 protobuf==3.10，直接装会把 protobuf 降级导致
 # `ImportError: cannot import name 'runtime_version'`；实测两者运行时可以共存，
 # 所以这里显式钉住版本，装完请确认 protobuf 没被降下去。
-protobuf>=5.27
+protobuf>=5.27.1
 blackboxprotobuf
