@@ -6,6 +6,7 @@ import openpyxl
 import requests
 from loguru import logger
 from retry import retry
+from pathlib import Path
 
 
 def norm_str(str):
@@ -181,7 +182,8 @@ def download_work(work_info, path, save_choice):
     nickname = norm_str(nickname)[:20]
     if title.strip() == '':
         title = f'无标题'
-    save_path = f'{path}/{nickname}_{user_id}/{title}_{work_id}'
+    save_path = Path(path) / Path(f'{nickname}_{user_id}') / Path(f'{title}_{work_id}')
+    save_path = str(save_path)
     check_and_create_path(save_path)
     with open(f'{save_path}/info.json', mode='w', encoding='utf-8') as f:
         f.write(json.dumps(work_info) + '\n')
